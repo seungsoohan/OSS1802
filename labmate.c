@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <search.h>
 #include <unistd.h>
+#include <string.h>
 #define MAX_STUDENTS	100
 
 
@@ -15,13 +16,15 @@ int team[MAX_STUDENTS] ;
 int n_team_members[MAX_STUDENTS / 2] ;
 int conflict[MAX_STUDENTS][MAX_STUDENTS] ;
 
-int read_student_list() 
+int read_student_list()
 {
 	FILE * fp ;
 	char * b ;
-	int i ; 
+	int i ;
+
 
 	fp = fopen("students.txt", "r") ; //TODO: allow a user can give a different file name as an argument.
+
 	while (feof(fp) == 0) {
 		if (fscanf(fp, "%d", &(students[n_students])) == 1)
 			n_students++ ;
@@ -30,13 +33,27 @@ int read_student_list()
 
 	n_teams = n_students / 2 ;
 
-	for (i = 0 ; i < n_students ; i++) 
+	int n;
+	int digit_count;
+	for (i = 0 ; i < n_students ; i++){
+		n = students[i];
+		digit_count = 0;
+		while(n != 0){
+			n /= 10;
+			++digit_count;
+		}
+		if(digit_count != 8){
+			printf("invalid student number!!\n");
+		}
+
 		conflict[i][i] = 0 ;
+	}
+
 
 	// TODO: check if a given student ID is valid.
 }
 
-int get_student_index(int id) 
+int get_student_index(int id)
 {
 	int i = 0 ;
 	for (i = 0 ; i < n_students ; i++) {
@@ -54,7 +71,7 @@ void read_conflict(char * fname)
 
 
 	fp = fopen(fname, "r") ;  // TODO: handle file errors
-	
+
 	while (getline(&b, &n, fp) > 0) {
 		int n_members ;
 		int m1, m2, m3;
@@ -71,7 +88,7 @@ void read_conflict(char * fname)
 		i1 = get_student_index(m1) ;
 		i2 = get_student_index(m2) ;
 
-		if (i1 == -1 || i2 == -1) 
+		if (i1 == -1 || i2 == -1)
 			exit(1) ;
 
 		conflict[i1][i2] = 1 ;
@@ -91,29 +108,29 @@ void read_conflict(char * fname)
 int _assign_team(int id) {
 	int is_team_feasible[MAX_STUDENTS / 2] ;
 	int n_feasible_teams = 0 ;
-	int i = 0 ; 
+	int i = 0 ;
 	int r = 0 ;
 	int c = 0 ;
 
 	for (i = 0 ; i < n_teams ; i++) {
 		is_team_feasible[i] = (n_team_members[i] < 3) ? 1 : 0 ;
 		if (n_team_members[i] == 3) {
-			for (i = 0 ; i < n_teams ; i++) 
-				is_team_feasible[i] = (n_team_members[i] < 2) ? 1 : 0 ;			
+			for (i = 0 ; i < n_teams ; i++)
+				is_team_feasible[i] = (n_team_members[i] < 2) ? 1 : 0 ;
 			break ;
 		}
 	}
-	for (i = 0 ; i < id ; i++) {		
+	for (i = 0 ; i < id ; i++) {
 		if (conflict[id][i] == 1)
 			is_team_feasible[team[i]] = 0 ;
 	}
-	for (i = 0 ; i < n_teams ; i++) {		
+	for (i = 0 ; i < n_teams ; i++) {
 		if (is_team_feasible[i] == 1)
 			n_feasible_teams++ ;
 	}
 
 	while (n_feasible_teams > 0) {
-		r = rand() % n_feasible_teams ; 		
+		r = rand() % n_feasible_teams ;
 		for (i = 0 ; i < n_teams ; i++) {
 			if (is_team_feasible[i] == 1) {
 				if (r == 0) {
@@ -122,7 +139,7 @@ int _assign_team(int id) {
 				}
 				else {
 					r-- ;
-				}					
+				}
 			}
 		}
 		team[id] = c ;
@@ -150,7 +167,7 @@ void find_team_assignments()
 	}
 }
 
-void print_team_assignment() 
+void print_team_assignment()
 {
 	int t, s ;
 
@@ -164,9 +181,9 @@ void print_team_assignment()
 }
 
 
-void main(int argc, char ** argv) 
-{	
-	char c ; 
+void main(int argc, char ** argv)
+{
+	char c ;
 	char * fconflict = NULL ;
 
 	while ((c = getopt(argc, argv, "hp:")) != -1) {
@@ -181,7 +198,7 @@ void main(int argc, char ** argv)
 				break ;
 
 			default:
-				fprintf(stderr, "Invalid argument\n") ; 
+				fprintf(stderr, "Invalid argument\n") ;
 				// Please someone make a better error message.
 				exit(1) ;
 		}
